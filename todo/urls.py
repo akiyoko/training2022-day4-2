@@ -3,6 +3,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # path('todo/', views.index),
+    # path('', views.todo_list),
     path('', views.TodoListView.as_view()),
 ]
