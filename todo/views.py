@@ -1,8 +1,9 @@
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.utils import timezone
 from django.views import View
 
+from .forms import TodoForm
 from .models import Todo
 
 
@@ -54,3 +55,30 @@ class TodoListView(View):
             'todo_list': todo_list,
         }
         return TemplateResponse(request, 'todo/todo_list.html', context)
+        # return TemplateResponse(request, 'todo/todo_list_1_2.html', context)
+
+
+# Step 6. TODO追加画面を作成する
+class TodoCreateView(View):
+    def get(self, request, *args, **kwargs):
+        # 空のフォームを作成して画面に表示
+        context = {
+            'form': TodoForm(),
+        }
+        return TemplateResponse(request, 'todo/todo_create.html', context)
+
+    def post(self, request, *args, **kwargs):
+        # リクエストパラメータからフォームを作成
+        form = TodoForm(request.POST)
+        # フォームを使ってバリデーション
+        if not form.is_valid():
+            # バリデーションNGの場合はリクエスト元の画面のテンプレートを再表示
+            context = {
+                'form': form,
+            }
+            return TemplateResponse(request, 'todo/todo_create.html', context)
+
+        # オブジェクトを保存
+        form.save()
+        # TODOリスト画面にリダイレクト
+        return HttpResponseRedirect('/todo/')
