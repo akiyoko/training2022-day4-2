@@ -10,6 +10,7 @@
   <tr>
     <th>タイトル</th>
     <th>期限日</th>
+    <th></th>
   </tr>
   </thead>
   <tbody>
@@ -21,6 +22,7 @@
       {{ todo.expiration_date|default:"なし" }}
       </span>
     </td>
+    <td><a href="/todo/update/{{ todo.pk }}/">変更</a></td>
   </tr>
   {% endfor %}
   </tbody>

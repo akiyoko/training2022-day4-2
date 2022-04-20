@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http.response import Http404
 from django.template.response import TemplateResponse
@@ -47,21 +48,19 @@ from .models import Todo
 
 
 # Step 5. モデルを使う
-class TodoListView(View):
+class TodoListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         today = timezone.localdate()
-        todo_list = Todo.objects.order_by('expiration_date')
+        todo_list = Todo.objects.filter(created_by=request.user).order_by('expiration_date')
         context = {
             'today': today,
             'todo_list': todo_list,
         }
         return TemplateResponse(request, 'todo/todo_list.html', context)
-        # return TemplateResponse(request, 'todo/todo_list_1_2.html', context)
-        # return TemplateResponse(request, 'todo/todo_list_3_1.html', context)
 
 
 # Step 6. TODO追加画面を作成する
-class TodoCreateView(View):
+class TodoCreateView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         # 空のフォームを作成して画面に表示
         context = {
@@ -81,17 +80,20 @@ class TodoCreateView(View):
             return TemplateResponse(request, 'todo/todo_create.html', context)
 
         # オブジェクトを保存
-        form.save()
+        todo = form.save(commit=False)
+        todo.created_by = request.user
+        todo.save()
+
         # TODOリスト画面にリダイレクト
         return HttpResponseRedirect('/todo/')
 
 
 # Step 7. TODO変更画面を作成する
-class TodoUpdateView(View):
+class TodoUpdateView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         # 対象レコードを取得
         try:
-            todo = Todo.objects.get(pk=pk)
+            todo = Todo.objects.get(pk=pk, created_by=request.user)
         except Todo.DoesNotExist:
             raise Http404
 
@@ -104,7 +106,7 @@ class TodoUpdateView(View):
     def post(self, request, pk, *args, **kwargs):
         # 対象レコードを取得
         try:
-            todo = Todo.objects.get(pk=pk)
+            todo = Todo.objects.get(pk=pk, created_by=request.user)
         except Todo.DoesNotExist:
             raise Http404
 
